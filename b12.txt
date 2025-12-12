@@ -1,5 +1,6 @@
 # 1 - AirPassengers 
 
+
 library(forecast)
 library(tseries)
 
@@ -71,6 +72,7 @@ print(accuracy(forecast_sarima))
 
 # 2 - nottem
 
+library(forecast) 
 data("nottem")
 str(nottem)
 summary(nottem)
