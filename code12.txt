@@ -1,0 +1,166 @@
+# prog1 - (arith-ops)
+
+is_valid_triangle = function(a, b, c){
+  if (a + b > c & b + c > a & a + c > b){
+    return(TRUE)
+  } else {
+    return(FALSE)
+  }
+}
+
+triangle_type = function(a, b, c){
+  if(a == b && b == c){
+    return("Equilateral")
+  } else if (a == b || b == c || c == a){
+    return("Isoceles")
+  } else {
+    return("Scalene")
+  }
+}
+
+area_of_traingle = function(a, b, c){
+  s = (a + b + c) / 2
+  area = sqrt(s * (s - a) * (s - b) * (s - c))
+  return(area)
+}
+
+validate_input = function(num){
+  if(!is.numeric(num) || num <= 0){
+    print("Enter Valid Number")
+    return(FALSE)
+  } else {
+    return(TRUE)
+  }
+}
+
+print("Enter the lengths of the Sides of the Triangle")
+
+a = as.numeric(readline("Enter First Side = "))
+b = as.numeric(readline("Enter Second Side = "))
+c = as.numeric(readline("Enter Third Side = "))
+
+if (!(validate_input(a) & validate_input(b) & validate_input(c))){
+  stop("Invalid Input")
+}
+
+if (!(is_valid_triangle(a, b, c))){
+  stop("Error: The given sides do not form a valid triangle.")
+}
+
+type_of_triangle = triangle_type(a, b, c)
+
+cat("The Triangle is", type_of_triangle, "\n")
+
+area = area_of_traingle(a, b, c)
+
+cat("The Triangle Area is", area, "\n")
+
+
+  
+# prog-2 (manip data struct)
+
+
+set.seed(42)
+
+random_vector = floor(runif(20, min = 1, max = 100))
+cat("Original Random Vector = ", random_vector, "\n\n")
+
+sorted_vector = sort(random_vector)
+cat("Sorted vector:\n", sorted_vector, "\n\n")
+
+search_value = 91
+is_value_present = any(random_vector == search_value)
+cat("Is", search_value, "present in the vector?", is_value_present, "\n\n")
+
+values_greater_than_60 = random_vector[random_vector > 60]
+cat("Values greater than 60:\n", values_greater_than_60, "\n\n")
+
+matrix_from_vector = matrix(random_vector, nrow = 5, ncol = 4)
+cat("Matrix From vector\n")
+print(matrix_from_vector)
+
+matrix_transpose = t(matrix_from_vector)
+matrix_multiplication = matrix_from_vector %*% matrix_transpose
+cat("\n")
+cat("Matrix multiplication result:\n")
+print(matrix_multiplication)
+cat("\n")
+
+elementwise_multiplication_result = matrix_from_vector * matrix_from_vector
+cat("Element-wise matrix multiplication result:\n")
+print(elementwise_multiplication_result)
+cat("\n")
+
+my_list = list(
+  numbers = random_vector,
+  characters = c("A", "B", "C", "D"),
+  logical_values = c(TRUE, FALSE, TRUE),
+  matrix = matrix_from_vector
+)
+
+cat("MY LIST:\n")
+print(my_list)
+
+subset_numeric = my_list$numbers
+cat("Subset numbers:\n", subset_numeric, "\n\n")
+
+subset_logical = my_list$logical_values
+cat("Subset Logicals:\n", subset_logical, "\n\n")
+
+my_list$characters[2] = "R"
+cat("Modified list of characters:\n", my_list$characters, "\n\n")
+
+squared_numbers = my_list$numbers^2
+cat("Squared numbers:\n", squared_numbers, "\n\n")
+
+df = data.frame(
+  ID = 1:20,
+  Age = sample(18:65, 20, replace = TRUE),
+  score = runif(20, min = 50, max = 100),
+  passed = sample(c(TRUE, FALSE), 20, replace = TRUE)
+)
+
+cat("DATAFRAME:\n")
+print(df)
+
+filtered_df = subset(df, Age > 30 & score > 70)
+cat("Filtered data frame (Age > 30 and Score > 70):\n")
+print(filtered_df)
+
+mean_age = mean(df$Age)
+sum_age = sum(df$Age)
+var_age = var(df$Age)
+
+mean_scores = mean(df$score)
+sum_scores = sum(df$score)
+var_scores = var(df$score)
+
+cat("Summary statistics for Age column:\n")
+cat("Mean Age:", mean_age, "\n")
+cat("Sum of Age:", sum_age, "\n")
+cat("Variance of Age:", var_age, "\n")
+
+cat("\nSummary statistics for Score column:\n")
+cat("Mean Score:", mean_scores, "\n")
+cat("Sum of Score:", sum_scores, "\n")
+cat("Variance of Score:", var_scores, "\n")
+
+df$score[sample(1:20, 5)] = NA
+cat("Data frame with missing values:\n")
+print(df)
+
+df$score[is.na(df$score)] = mean(df$score, na.rm = TRUE)
+cat("Data frame after imputation of missing values:\n")
+print(df)
+
+library(dplyr)
+
+grouped_stats = df %>%
+  group_by(passed) %>%
+  summarise(
+    mean_score = mean(score),
+    mean_age = mean(Age)
+  )
+
+cat("Grouped statistics by Passed status:\n")
+print(grouped_stats)
