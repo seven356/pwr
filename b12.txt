@@ -71,4 +71,49 @@ print(accuracy(forecast_sarima))
 
 # 2 - nottem
 
+data("nottem")
+str(nottem)
+summary(nottem)
+start(nottem); end(nottem)
+frequency(nottem)
+
+plot(nottem, main="Monthly Temperatures in Nottingham (1920–1939)",
+     ylab="Temperature (°F)", col="blue")
+
+
+
+class(nottem)
+sum(is.na(nottem))
+cycle(nottem)
+
+
+
+adf.test(nottem, alternative="stationary")
+kpss.test(nottem)
+
+
+diff_seasonal <- diff(nottem, lag = 12)
+plot(diff_seasonal, main="After Seasonal Differencing (lag = 12)",
+     col="darkgreen")
+
+
+fit_nottem <- auto.arima(nottem,
+                         seasonal = TRUE,
+                         stepwise = FALSE,
+                         approximation = FALSE,
+                         trace = TRUE)
+summary(fit_nottem)
+
+
+checkresiduals(fit_nottem)
+
+
+forecast_nottem <- forecast(fit_nottem, h = 36)
+
+plot(forecast_nottem,
+     main="Forecast of Nottingham Monthly Temperatures",
+     xlab="Year", ylab="Temperature (°F)")
+lines(fitted(fit_nottem), col="red", lty=2)
+legend("topleft", legend=c("Observed","Fitted","Forecast"),
+       col=c("black","red","blue"), lty=c(1,2,1), cex=0.8)
 
