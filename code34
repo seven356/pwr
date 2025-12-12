@@ -1,0 +1,100 @@
+# prog-3 (basic stats ops)
+
+library(dplyr)
+library(ggplot2)
+library(moments)
+library(palmerpenguins)
+
+data(iris)
+data(penguins)
+
+calc_mode = function(x){
+  max_freq = as.numeric(names(sort(table(x), decreasing = TRUE))[1])
+  return(max_freq)
+}
+
+cat(" ----- Iris Dataset Analysis -----\n\n")
+
+iris_mean = sapply(iris[,1:4], mean, na.rm = TRUE)
+cat('MEAN OF IRIS DATASET :\n', iris_mean, "\n")
+
+iris_median = sapply(iris[,1:4], median, na.rm = TRUE)
+cat('\nMEDIAN OF IRIS DATASET :\n', iris_median, "\n")
+
+iris_mode = sapply(iris[,1:4], calc_mode)
+cat('\nMODE OF IRIS DATASET :\n', iris_mode, "\n")
+
+iris_var = sapply(iris[,1:4], var, na.rm = TRUE)
+cat('\nVARIANCE OF IRIS DATASET :\n', iris_var, "\n")
+
+iris_sd = sapply(iris[,1:4], sd, na.rm = TRUE)
+cat('\nSTANDARD DEV OF IRIS DATASET :\n', iris_sd, "\n")
+
+iris_skew = sapply(iris[,1:4], skewness, na.rm = TRUE)
+cat('\nSKEWNESS OF IRIS DATASET :\n', iris_skew, "\n")
+
+iris_kurtosis = sapply(iris[,1:4], kurtosis, na.rm = TRUE)
+cat('\nKURTOSIS OF IRIS DATASET :\n', iris_kurtosis, "\n")
+
+setosa = subset(iris, Species == "setosa")$Sepal.Length
+versicolor = subset(iris, Species == "versicolor")$Sepal.Length
+
+t_test = t.test(setosa, versicolor)
+print(t_test)
+
+ggplot(iris, aes(x = Sepal.Length)) +
+  geom_histogram(binwidth = 0.1, fill = 'blue', color = "black") +
+  ggtitle("Histogram of Sepal Length in Iris Dataset")
+
+ggplot(iris, aes(x = Species, y = Sepal.Length, fill = Species)) +
+  geom_boxplot() +
+  ggtitle("Boxplot of Sepal Length by Species in Iris Dataset")
+
+
+
+# prog 4 - (Adv data wrangling)
+
+
+library(tidyverse)
+library(titanic)
+library(dplyr)
+library(caret)
+library(ggcorrplot)
+
+data = titanic_train
+
+print(data)
+
+data$Age[is.na(data$Age)] = median(data$Age, na.rm = TRUE)
+
+mode_embarked = names(sort(table(data$Embarked), decreasing = TRUE))[1]
+data$Embarked[is.na(data$Embarked)] = mode_embarked 
+
+print(data)
+
+numeric_columns = sapply(data, is.numeric)
+
+z_scores = as.data.frame(scale(data[, numeric_columns]))
+
+outlier_condition = apply(z_scores, 1, function(row) any(abs(row) > 3))
+
+data_clean = data[!outlier_condition, ]
+
+print(data_clean)
+
+summary_before = summary(data)
+print(" Summary Before Cleaning :")
+print(as.data.frame(summary_before))
+
+summary_after = summary(data_clean)
+print(" Summary After Cleaning :")
+print(as.data.frame(summary_after))
+
+correlation_matrix = cor(data_clean[, numeric_columns], use = "everything")
+print("Correlation Matrix :")
+print(correlation_matrix)
+
+write.csv(data_clean, "cleaned_titanic_data.csv")
+
+ggcorrplot(correlation_matrix, title = "Correlation Matrix of Titanic Dataset", lab = TRUE)
+
