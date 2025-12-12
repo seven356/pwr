@@ -1,5 +1,5 @@
 # 3 - lynx 
-
+library(forecast) 
 data("lynx")
 str(lynx)
 summary(lynx)
@@ -47,7 +47,7 @@ autoplot(lynx_fc)
 
 
 # 4 - sunspots
-
+library(forecast) 
 data("sunspots")
 str(sunspots)
 summary(sunspots)
