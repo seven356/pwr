@@ -1,0 +1,183 @@
+# prog-9
+
+library(forecast)
+library(ggplot2)
+library(TSA)
+library(tseries)
+
+perform_eda <- function(ts_data, dataset_name) {
+  cat("Exploratory Data Analysis for", dataset_name, "\n")
+  print(summary(ts_data))
+  plot(ts_data, main = paste(dataset_name, "Time Series"),
+       ylab = "Values", xlab = "Time")
+  cat("ACF and PACF plots:\n")
+  acf(ts_data, main = paste("ACF of", dataset_name))
+  pacf(ts_data, main = paste("PACF of", dataset_name))
+}
+
+decompose_ts <- function(ts_data, dataset_name) {
+  cat("Decomposing the time series for", dataset_name, "\n")
+  decomposition <- decompose(ts_data)
+  plot(decomposition)
+  return(decomposition)
+}
+
+fit_arima <- function(ts_data, dataset_name) {
+  cat("Fitting ARIMA model for", dataset_name, "\n")
+  adf_test <- adf.test(ts_data, alternative = "stationary")
+  cat("ADF Test p-value:", adf_test$p.value, "\n")
+  if (adf_test$p.value > 0.05) {
+    ts_data <- diff(ts_data)
+    plot(ts_data, main = paste(dataset_name, "Differenced Time Series"))
+  }
+  auto_model <- auto.arima(ts_data, seasonal = FALSE)
+  print(summary(auto_model))
+  forecast_result <- forecast(auto_model, h = 12)
+  plot(forecast_result, main = paste(dataset_name, "ARIMA Forecast"))
+  return(auto_model)
+}
+
+fit_sarima <- function(ts_data, dataset_name) {
+  cat("Fitting SARIMA model for", dataset_name, "\n")
+  auto_sarima <- auto.arima(ts_data, seasonal = TRUE)
+  print(summary(auto_sarima))
+  sarima_forecast <- forecast(auto_sarima, h = 12)
+  plot(sarima_forecast, main = paste(dataset_name, "SARIMA Forecast"))
+  return(auto_sarima)
+}
+
+compare_models <- function(arima_model, sarima_model, ts_data) {
+  cat("Comparing ARIMA and SARIMA models:\n")
+  h <- min(12, length(ts_data))
+  arima_forecast <- forecast(arima_model, h = h)
+  sarima_forecast <- forecast(sarima_model, h = h)
+  actual_values <- ts_data[(length(ts_data) - h + 1):length(ts_data)]
+  arima_accuracy <- accuracy(arima_forecast$mean, actual_values)
+  sarima_accuracy <- accuracy(sarima_forecast$mean, actual_values)
+  cat("ARIMA Forecast Accuracy:\n")
+  print(arima_accuracy)
+  cat("SARIMA Forecast Accuracy:\n")
+  print(sarima_accuracy)
+}
+
+plot_forecast_comparison <- function(actual_values, arima_forecast, sarima_forecast, time_points) {
+  arima_rmse <- sqrt(mean((arima_forecast - actual_values)^2))
+  sarima_rmse <- sqrt(mean((sarima_forecast - actual_values)^2))
+  better_color <- ifelse(arima_rmse < sarima_rmse, "green", "red")
+  worse_color  <- ifelse(arima_rmse < sarima_rmse, "red", "green")
+  plot(time_points, actual_values, type = "o", col = "blue",
+       pch = 16, lty = 1, xlab = "Time", ylab = "Values",
+       main = "Forecast Comparison")
+  lines(time_points, arima_forecast, col = better_color, lty = 2, lwd = 2)
+  lines(time_points, sarima_forecast, col = worse_color, lty = 3, lwd = 2)
+  legend("topright",
+         legend = c("Actual Values",
+                    paste("ARIMA (RMSE =", round(arima_rmse, 2), ")"),
+                    paste("SARIMA (RMSE =", round(sarima_rmse, 2), ")")),
+         col = c("blue", better_color, worse_color),
+         lty = c(1, 2, 3), lwd = c(1, 2, 2), pch = c(16, NA, NA))
+}
+
+data("AirPassengers")
+air_data <- AirPassengers
+
+cat("\n--- AirPassengers Dataset ---\n")
+perform_eda(air_data, "AirPassengers")
+decompose_ts(air_data, "AirPassengers")
+
+arima_air <- fit_arima(air_data, "AirPassengers")
+sarima_air <- fit_sarima(air_data, "AirPassengers")
+
+compare_models(arima_air, sarima_air, air_data)
+
+h_air <- 12
+air_actual_values <- air_data[(length(air_data) - h_air + 1):length(air_data)]
+arima_air_forecast <- forecast(arima_air, h = h_air)$mean
+sarima_air_forecast <- forecast(sarima_air, h = h_air)$mean
+time_points_air <- time(air_data)[(length(air_data) - h_air + 1):length(air_data)]
+
+plot_forecast_comparison(air_actual_values, arima_air_forecast, sarima_air_forecast, time_points_air)
+
+data(milk)
+milk_data <- milk
+
+cat("\n--- Monthly Milk Production Dataset ---\n")
+perform_eda(milk_data, "Monthly Milk Production")
+decompose_ts(milk_data, "Monthly Milk Production")
+
+arima_milk <- fit_arima(milk_data, "Monthly Milk Production")
+sarima_milk <- fit_sarima(milk_data, "Monthly Milk Production")
+
+compare_models(arima_milk, sarima_milk, milk_data)
+
+h_milk <- 12
+milk_actual_values <- milk_data[(length(milk_data) - h_milk + 1):length(milk_data)]
+arima_milk_forecast <- forecast(arima_milk, h = h_milk)$mean
+sarima_milk_forecast <- forecast(sarima_milk, h = h_milk)$mean
+time_points_milk <- time(milk_data)[(length(milk_data) - h_milk + 1):length(milk_data)]
+
+plot_forecast_comparison(milk_actual_values, arima_milk_forecast, sarima_milk_forecast, time_points_milk)
+
+
+
+
+# prog -10
+
+
+
+library(plotly)
+library(gapminder)
+library(dplyr)
+
+scatter_plot <- gapminder %>%
+  plot_ly(
+    x = ~gdpPercap,
+    y = ~lifeExp,
+    color = ~continent,
+    size = ~pop,
+    type = "scatter",
+    mode = "markers",
+    hoverinfo = "text",
+    text = ~paste(
+      "Country:", country,
+      "<br>GDP per Capita:", gdpPercap
+    )
+  ) %>%
+  layout(title = "GDP vs Life Expectancy by Continent")
+
+scatter_plot
+
+bar_chart <- gapminder %>%
+  filter(year == 2007) %>%
+  plot_ly(
+    x = ~country,
+    y = ~lifeExp,
+    type = "bar",
+    hoverinfo = "text",
+    text = ~paste(
+      "Country:", country,
+      "<br>Life Expectancy:", lifeExp
+    )
+  ) %>%
+  layout(title = "Life Expectancy by Country (2007)")
+
+bar_chart
+
+line_chart <- gapminder %>%
+  filter(continent == "Asia") %>%
+  plot_ly(
+    x = ~year,
+    y = ~lifeExp,
+    color = ~country,
+    type = "scatter",
+    mode = "lines"
+  ) %>%
+  layout(title = "Life Expectancy Trend in Asia")
+
+line_chart
+
+dashboard <- subplot(scatter_plot, bar_chart, line_chart, nrows = 1) %>%
+  layout(title = "Gapminder Data Visualization")
+
+dashboard
+
