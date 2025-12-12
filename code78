@@ -1,0 +1,65 @@
+# prog 7 (lin-mul regression)
+
+library(MASS)
+library(ggplot2)
+library(caret)
+library(car)
+library(pROC)
+library(dplyr)
+library(ggcorrplot)
+
+data("Boston")
+
+head(Boston)
+
+boxplot(Boston$medv, main = "Boxplot of Median Value of Homes (medv)")
+
+Boston = Boston %>% filter(medv < 50)
+
+corr_matrix = cor(Boston)
+ggcorrplot(corr_matrix, title = "HEATMAP")
+
+simple_model = lm(medv ~ lstat, data = Boston)
+summary(simple_model)
+
+multiple_model = lm(medv ~ lstat * rm, data = Boston)
+summary(multiple_model)
+
+adjusted_R2 = summary(multiple_model)$adj.r.squared
+AIC_value = AIC(multiple_model)
+BIC_value = BIC(multiple_model)
+
+cat("Adjusted Rˆ2:", adjusted_R2, "\n")
+cat("AIC:", AIC_value, "\n")
+cat("BIC:", BIC_value, "\n")
+
+plot(multiple_model, which = 1, main = "Residuals vs Fitted Plot")
+plot(multiple_model, which = 2, main = "QQ NORMAl PLOT")
+
+set.seed(42)
+
+train_control = trainControl(method = "cv", number = 10)
+
+cv_model = train(medv ~ lstat * rm, data = Boston, method = "lm", trControl = train_control)
+
+print(cv_model)
+
+Boston$medv = ifelse(Boston$medv >= 25, 1, 0)
+
+logistic_model = glm(medv ~ lstat * rm, data = Boston, family = "binomial")
+
+summary(logistic_model)
+
+pred_probs = predict(logistic_model, type = "response")
+
+roc_curve = roc(Boston$medv, pred_probs)
+
+plot(roc_curve, main = "ROC Curve for Logistic Regression Model", col = "blue")
+
+cat("AUC:", auc(roc_curve))
+
+
+
+
+# prog 8 (kmeans-pca)
+
