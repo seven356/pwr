@@ -1,0 +1,167 @@
+# 3 - lynx 
+
+data("lynx")
+str(lynx)
+summary(lynx)
+start(lynx); end(lynx); frequency(lynx)
+
+plot(lynx, main="Annual Lynx Trappings in Canada (1821–1934)",
+     ylab="Number of Lynx Trapped", col="blue")
+
+
+class(lynx)
+sum(is.na(lynx))
+
+
+log_lynx <- log(lynx)
+plot(log_lynx, main="Log-Transformed Lynx Series", col="darkred")
+
+
+adf.test(log_lynx, alternative="stationary")
+kpss.test(log_lynx)
+
+
+log_diff1 <- diff(log_lynx, differences = 1)
+plot(log_diff1, main="First Differenced log(Lynx)", col="darkgreen")
+
+
+
+acf(log_diff1)
+pacf(log_diff1)
+
+
+fit_lynx <- auto.arima(log_lynx,
+                       seasonal = FALSE,
+                       stepwise = FALSE,
+                       approximation = FALSE,
+                       trace = TRUE)
+summary(fit_lynx)
+
+
+checkresiduals(fit_lynx)
+
+library(forecast)
+lynx_fc <- forecast(fit_lynx, h = 20)
+autoplot(lynx_fc)
+
+
+
+# 4 - sunspots
+
+data("sunspots")
+str(sunspots)
+summary(sunspots)
+start(sunspots); end(sunspots); frequency(sunspots)
+
+plot(sunspots,
+     main="Monthly Sunspot Counts (1749–1983)",
+     ylab="Sunspots", col="blue")
+
+
+sum(is.na(sunspots))
+class(sunspots)
+frequency(sunspots)
+
+
+
+log_sun <- log(sunspots + 1)  # +1 to avoid log(0)
+plot(log_sun, main="Log-transformed Sunspots", col="darkred")
+
+
+adf.test(log_sun, alternative="stationary")
+kpss.test(log_sun)
+
+
+log_diff1 <- diff(log_sun, differences = 1)
+plot(log_diff1,
+     main="First Differenced log(Sunspots)",
+     col="darkgreen")
+
+acf(log_diff1)
+pacf(log_diff1)
+
+
+fit_sun <- auto.arima(log_sun,
+                      seasonal = FALSE,  
+                      stepwise = FALSE,
+                      approximation = FALSE,
+                      trace = TRUE)
+summary(fit_sun)
+
+
+checkresiduals(fit_sun)
+
+library(forecast)
+sun_fc <- forecast(fit_sun, h = 120)
+autoplot(sun_fc)
+
+sigma2 <- fit_sun$sigma2
+sun_fc_original <- exp(sun_fc$mean + 0.5*sigma2) - 1
+
+
+plot(sunspots, xlim=c(1749, 1983+10),
+     main="Forecasted Monthly Sunspots",
+     ylab="Sunspot Count")
+lines(ts(sun_fc_original, start=1984, frequency=12),
+      col="red", lwd=2)
+
+
+
+# 5 - USAcc dataset
+
+data("USAccDeaths")
+str(USAccDeaths)
+summary(USAccDeaths)
+start(USAccDeaths); end(USAccDeaths); frequency(USAccDeaths)
+
+plot(USAccDeaths,
+     main="Monthly Accidental Deaths in the US (1973–1978)",
+     ylab="Deaths", col="blue")
+
+
+
+class(USAccDeaths)
+sum(is.na(USAccDeaths))
+
+cycle(USAccDeaths)
+
+
+adf.test(USAccDeaths, alternative="stationary")
+kpss.test(USAccDeaths)
+
+
+diff_seasonal <- diff(USAccDeaths, lag = 12)
+plot(diff_seasonal,
+     main="After Seasonal Differencing (lag=12)",
+     col="darkgreen")
+
+diff_full <- diff(diff_seasonal, differences = 1)
+plot(diff_full,
+     main="After Seasonal + Regular Differencing",
+     col="blue")
+
+
+library(forecast)
+
+fit_usacc <- auto.arima(USAccDeaths,
+                        seasonal = TRUE,
+                        stepwise = FALSE,
+                        approximation = FALSE,
+                        trace = TRUE)
+summary(fit_usacc)
+
+
+checkresiduals(fit_usacc)
+
+
+usacc_fc <- forecast(fit_usacc, h = 24)
+
+plot(usacc_fc,
+     main="Forecast of US Accidental Deaths",
+     ylab="Deaths", col="blue")
+lines(fitted(fit_usacc), col="red", lty=2)
+legend("topleft",
+       legend=c("Observed","Fitted","Forecast"),
+       col=c("black","red","blue"),
+       lty=c(1,2,1))
+
